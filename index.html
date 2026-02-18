@@ -1,22 +1,777 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Interactive Quiz</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Irregular Verbs Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #222222;
+      --accent: #0057b8;
+      --accent-soft: #e0ecff;
+      --wrong: #b80028;
+      --right: #007a3d;
+      --muted: #666666;
+      --border: #dddddd;
+      --focus: #ffbf47;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111111;
+        --card: #1e1e1e;
+        --text: #f5f5f5;
+        --accent-soft: #102040;
+        --border: #333333;
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 900px;
+      width: 100%;
+      padding: 1.5rem;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+    }
+
+    p.description {
+      margin-top: 0.25rem;
+      color: var(--muted);
+    }
+
+    .instructions {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .question {
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .question:last-of-type {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .q-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: baseline;
+      margin-bottom: 0.5rem;
+    }
+
+    .q-number {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    .q-base {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .q-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .inputs-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    label {
+      font-size: 0.9rem;
+    }
+
+    input[type="text"] {
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.35rem;
+      border: 1px solid var(--border);
+      min-width: 120px;
+      font-size: 0.95rem;
+      background: transparent;
+      color: inherit;
+    }
+
+    input[type="text"]:focus {
+      outline: 2px solid var(--focus);
+      outline-offset: 1px;
+      border-color: var(--focus);
+    }
+
+    .feedback {
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+      min-height: 1.1em;
+    }
+
+    .feedback.correct {
+      color: var(--right);
+    }
+
+    .feedback.incorrect {
+      color: var(--wrong);
+    }
+
+    .controls {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.5rem 1.1rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: background 0.15s ease, transform 0.05s ease;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .score {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .score span {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 600px) {
+      .inputs-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        max-width: 260px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>HTML Basics Quiz</h1>
-  <form id="quiz-form">
-    <div>
-      <p>1. What does HTML stand for?</p>
-      <input type="radio" name="q1" value="a"> Home Tool Markup Language<br>
-      <input type="radio" name="q1" value="b"> HyperText Markup Language<br>
-      <input type="radio" name="q1" value="c"> Hyperlink Text Management Language<br>
-    </div>
-    <button type="button" onclick="submitQuiz()">Submit</button>
-  </form>
-  <div id="result"></div>
+  <main>
+    <article class="card" aria-labelledby="title">
+      <header>
+        <h1 id="title">Irregular Verbs Quiz</h1>
+        <p class="description">
+          Practise 20 common English irregular verbs. Type the correct past simple and past participle forms.
+        </p>
+      </header>
 
-  <script src="script.js"></script>
+      <section class="instructions" aria-label="Instructions">
+        <p>
+          For each <strong>base form</strong>, write:
+        </p>
+        <ul>
+          <li>the <strong>past simple</strong> form</li>
+          <li>the <strong>past participle</strong> form</li>
+        </ul>
+        <p>
+          Spelling must be correct. Use <strong>British English</strong> forms (for example: <em>get – got – got</em>).
+        </p>
+      </section>
+
+      <!-- Questions in random order -->
+      <section id="quiz" aria-label="Irregular verbs questions">
+        <!-- 1 -->
+        <div class="question" data-base="make" data-past="made" data-participle="made">
+          <div class="q-header">
+            <span class="q-number">1.</span>
+            <span class="q-base">make</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 2 -->
+        <div class="question" data-base="go" data-past="went" data-participle="gone">
+          <div class="q-header">
+            <span class="q-number">2.</span>
+            <span class="q-base">go</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 3 -->
+        <div class="question" data-base="drink" data-past="drank" data-participle="drunk">
+          <div class="q-header">
+            <span class="q-number">3.</span>
+            <span class="q-base">drink</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 4 -->
+        <div class="question" data-base="write" data-past="wrote" data-participle="written">
+          <div class="q-header">
+            <span class="q-number">4.</span>
+            <span class="q-base">write</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 5 -->
+        <div class="question" data-base="have" data-past="had" data-participle="had">
+          <div class="q-header">
+            <span class="q-number">5.</span>
+            <span class="q-base">have</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 6 -->
+        <div class="question" data-base="bring" data-past="brought" data-participle="brought">
+          <div class="q-header">
+            <span class="q-number">6.</span>
+            <span class="q-base">bring</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 7 -->
+        <div class="question" data-base="see" data-past="saw" data-participle="seen">
+          <div class="q-header">
+            <span class="q-number">7.</span>
+            <span class="q-base">see</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 8 -->
+        <div class="question" data-base="become" data-past="became" data-participle="become">
+          <div class="q-header">
+            <span class="q-number">8.</span>
+            <span class="q-base">become</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 9 -->
+        <div class="question" data-base="take" data-past="took" data-participle="taken">
+          <div class="q-header">
+            <span class="q-number">9.</span>
+            <span class="q-base">take</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 10 -->
+        <div class="question" data-base="know" data-past="knew" data-participle="known">
+          <div class="q-header">
+            <span class="q-number">10.</span>
+            <span class="q-base">know</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 11 -->
+        <div class="question" data-base="eat" data-past="ate" data-participle="eaten">
+          <div class="q-header">
+            <span class="q-number">11.</span>
+            <span class="q-base">eat</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 12 -->
+        <div class="question" data-base="begin" data-past="began" data-participle="begun">
+          <div class="q-header">
+            <span class="q-number">12.</span>
+            <span class="q-base">begin</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 13 -->
+        <div class="question" data-base="get" data-past="got" data-participle="got">
+          <div class="q-header">
+            <span class="q-number">13.</span>
+            <span class="q-base">get</span>
+            <span class="q-label">(base form, British English)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 14 -->
+        <div class="question" data-base="do" data-past="did" data-participle="done">
+          <div class="q-header">
+            <span class="q-number">14.</span>
+            <span class="q-base">do</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 15 -->
+        <div class="question" data-base="come" data-past="came" data-participle="come">
+          <div class="q-header">
+            <span class="q-number">15.</span>
+            <span class="q-base">come</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 16 -->
+        <div class="question" data-base="break" data-past="broke" data-participle="broken">
+          <div class="q-header">
+            <span class="q-number">16.</span>
+            <span class="q-base">break</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 17 -->
+        <div class="question" data-base="find" data-past="found" data-participle="found">
+          <div class="q-header">
+            <span class="q-number">17.</span>
+            <span class="q-base">find</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 18 -->
+        <div class="question" data-base="be" data-past="was/were" data-participle="been">
+          <div class="q-header">
+            <span class="q-number">18.</span>
+            <span class="q-base">be</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple (singular/plural accepted):
+              <input type="text" autocomplete="off" placeholder="was / were" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 19 -->
+        <div class="question" data-base="buy" data-past="bought" data-participle="bought">
+          <div class="q-header">
+            <span class="q-number">19.</span>
+            <span class="q-base">buy</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+
+        <!-- 20 -->
+        <div class="question" data-base="give" data-past="gave" data-participle="given">
+          <div class="q-header">
+            <span class="q-number">20.</span>
+            <span class="q-base">give</span>
+            <span class="q-label">(base form)</span>
+          </div>
+          <div class="inputs-row">
+            <label>
+              Past simple:
+              <input type="text" autocomplete="off" />
+            </label>
+            <label>
+              Past participle:
+              <input type="text" autocomplete="off" />
+            </label>
+          </div>
+          <div class="feedback" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="Quiz controls">
+        <div class="buttons">
+          <button type="button" class="btn-primary" id="checkBtn">
+            ✅ Check answers
+          </button>
+          <button type="button" class="btn-secondary" id="resetBtn">
+            🔄 Reset
+          </button>
+        </div>
+        <div class="score" aria-live="polite">
+          Score: <span id="scoreValue">0</span> / <span id="totalValue">20</span>
+        </div>
+      </section>
+
+      <p class="summary" id="summaryText" aria-live="polite"></p>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      const questions = Array.from(document.querySelectorAll(".question"));
+      const checkBtn = document.getElementById("checkBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const scoreValue = document.getElementById("scoreValue");
+      const totalValue = document.getElementById("totalValue");
+      const summaryText = document.getElementById("summaryText");
+
+      totalValue.textContent = questions.length.toString();
+
+      function normalise(text) {
+        return text.trim().toLowerCase();
+      }
+
+      function checkAnswers() {
+        let correctCount = 0;
+
+        questions.forEach((q) => {
+          const base = q.dataset.base;
+          const past = q.dataset.past;
+          const part = q.dataset.participle;
+
+          const inputs = q.querySelectorAll("input[type='text']");
+          const pastInput = inputs[0];
+          const partInput = inputs[1];
+          const feedback = q.querySelector(".feedback");
+
+          const userPast = normalise(pastInput.value);
+          const userPart = normalise(partInput.value);
+
+          let isCorrect = false;
+
+          if (base === "be") {
+            const acceptablePast = ["was", "were", "was/were", "were/was"];
+            const pastOk = acceptablePast.includes(userPast);
+            const partOk = userPart === normalise(part);
+            isCorrect = pastOk && partOk;
+          } else {
+            const correctPast = normalise(past);
+            const correctPart = normalise(part);
+            isCorrect = userPast === correctPast && userPart === correctPart;
+          }
+
+          if (isCorrect) {
+            correctCount++;
+            feedback.textContent = "Correct ✔";
+            feedback.classList.remove("incorrect");
+            feedback.classList.add("correct");
+          } else {
+            feedback.textContent =
+              "Incorrect ✖  Correct forms: " + past + " / " + part;
+            feedback.classList.remove("correct");
+            feedback.classList.add("incorrect");
+          }
+        });
+
+        scoreValue.textContent = correctCount.toString();
+
+        const percentage = Math.round((correctCount / questions.length) * 100);
+        if (percentage === 100) {
+          summaryText.textContent =
+            "Excellent – full score. Your irregular verbs are in very good shape.";
+        } else if (percentage >= 75) {
+          summaryText.textContent =
+            "Very good. A few slips, but your control of irregular verbs is strong.";
+        } else if (percentage >= 50) {
+          summaryText.textContent =
+            "Not bad, but worth another look at some of these forms.";
+        } else {
+          summaryText.textContent =
+            "A good moment to review these verbs carefully, then try the quiz again.";
+        }
+      }
+
+      function resetQuiz() {
+        questions.forEach((q) => {
+          const inputs = q.querySelectorAll("input[type='text']");
+          inputs.forEach((input) => {
+            input.value = "";
+          });
+          const feedback = q.querySelector(".feedback");
+          feedback.textContent = "";
+          feedback.classList.remove("correct", "incorrect");
+        });
+        scoreValue.textContent = "0";
+        summaryText.textContent = "";
+      }
+
+      checkBtn.addEventListener("click", checkAnswers);
+      resetBtn.addEventListener("click", resetQuiz);
+    })();
+  </script>
 </body>
 </html>
